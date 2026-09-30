@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Résultats clés — Plateforme paludisme Bénin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">◆</span>
+      <div>
+        <div class="brand-title">Aide à la décision sur le paludisme au Bénin</div>
+        <div class="brand-sub">Modèle SEIRS-SEI multi-patchs · 12 départements</div>
+      </div>
+    </a>
+    <nav class="site-links">
+      <a href="index.html">Accueil</a>
+      <a href="pourquoi.html">Pourquoi cet outil</a>
+      <a href="resultats.html" class="current">Résultats clés</a>
+      <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="outil.html" class="cta">Accéder à l'outil →</a>
+    </nav>
+  </div>
+</header>
+
+<section class="highlights" id="points-cles">
+  <div class="section-head">
+    <span class="section-eyebrow">Résultats clés</span>
+    <h2>Ce que montrent les données aujourd'hui</h2>
+    <p class="muted" style="max-width:68ch; margin-top:10px;">Les quatre premières cartes décrivent la situation de référence, sans intervention. La cinquième se met à jour dès que tu testes un scénario dans l'outil, sur cet appareil.</p>
+  </div>
+  <div class="highlight-grid" id="highlight-grid"></div>
+</section>
+
+<nav class="page-foot-nav" aria-label="Poursuivre">
+  <a href="fonctionnalites.html">Fonctionnalités →</a>
+  <a href="outil.html">Accéder à l'outil →</a>
+</nav>
+
+<footer>
+  Plateforme d'aide à la décision fondée sur le mémoire «&nbsp;Modélisation de la propagation géographique du paludisme au Bénin&nbsp;». Les valeurs de R₀ et de prévalence hiérarchisent les départements les uns par rapport aux autres pour cibler les priorités d'intervention. Calculs exécutés entièrement dans le navigateur, validés terme à terme contre le modèle de référence du mémoire.
+</footer>
+
+<script src="malaria-model.js"></script>
+<script>
+(function(){
+"use strict";
+const DEP = MalariaModel.DEPARTEMENTS;
+const N = MalariaModel.N_PATCH;
+const KAPPA_NOM = MalariaModel.KAPPA_NOM;
+const THETA_NOM = MalariaModel.THETA_NOMINAL;
+const ROBUSTESSE_MC = MalariaModel.ROBUSTESSE_MC;
+
+const { P: P_NOM } = MalariaModel.matriceResidence(THETA_NOM);
+const P0 = MalariaModel.buildParams(KAPPA_NOM);
+
+const round = (x, n) => { const f = Math.pow(10, n); return Math.round(x * f) / f; };
+
+const STORAGE_KEY = "malariaBeninDernierScenario";
+function lireDernierScenario(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e){ return null; }
+}
+function effacerDernierScenario(){
+  try { localStorage.removeItem(STORAGE_KEY); } catch (e){}
+}
+
+function apiDiagnostic(){
+  const r0_local = MalariaModel.R0LocalNoMobility(P0);
+  const K_hv = MalariaModel.KhvMatrix(P0, P_NOM);
+  const I_k = K_hv.map(row => row.reduce((s,x)=>s+x,0));
+  const E_k = new Array(N).fill(0);
+  for (let k=0;k<N;k++) for (let j=0;j<N;j++) E_k[j]+=K_hv[k][j];
+  const SP_k = E_k.map((e,k)=>e-I_k[k]);
+  const r0_global = MalariaModel.R0Spatial(P0, P_NOM);
+  const departements = DEP.map((d,i)=>({
+    nom:d,
+    r0_local: round(r0_local[i],4),
+    source_local: r0_local[i] > 1.0,
+    sp_k: round(SP_k[i],6),
+    source_net: SP_k[i] > 0,
+  }));
+  departements.sort((a,b)=>b.r0_local-a.r0_local);
+  return { kappa:KAPPA_NOM, theta:THETA_NOM, r0_spatial: round(r0_global,4), departements };
+}
+
+function prevalenceNationaleEtDepartementale(p, tEndYears){
+  const y0 = MalariaModel.etatInitialPrevalence(p, 0.20);
+  const { y } = MalariaModel.simuler(y0, p, P_NOM, tEndYears || 150.0, 1.0);
+  const ex = MalariaModel.extraire(y);
+  const prevNat = (ex.Ih.reduce((s,x)=>s+x,0)+ex.Rh.reduce((s,x)=>s+x,0)) / ex.N_h.reduce((s,x)=>s+x,0);
+  return { prevNat };
+}
+function getBaseline(){
+  const r0_baseline = MalariaModel.R0Spatial(P0, P_NOM);
+  const { prevNat } = prevalenceNationaleEtDepartementale(P0);
+  return { r0_baseline, prevalence_nationale_baseline: prevNat };
+}
+
+function remplirPointsCles(){
+  const grid = document.getElementById("highlight-grid");
+  if (!grid) return;
+  const cartoData = apiDiagnostic();
+  const parTransmission = [...cartoData.departements].sort((a,b)=>b.r0_local-a.r0_local);
+  const top3 = parTransmission.slice(0,3).map(d=>d.nom);
+  const base = getBaseline();
+  const fiabilites = top3.map(n=>ROBUSTESSE_MC[n]?.pr_source).filter(v=>v!=null);
+  const fiabiliteMin = fiabilites.length ? Math.min(...fiabilites) : null;
+  const dernierScenario = lireDernierScenario();
+
+  const cartes = [
+    {
+      label:"Départements prioritaires",
+      valeur: top3.join(" · "),
+      detail:"Ces départements entretiennent la transmission et la propagent vers le reste du pays&nbsp;: ils doivent être traités en premier.",
+    },
+    {
+      label:"Risque national (référence, sans intervention)",
+      valeur:`R₀ = ${cartoData.r0_spatial}`,
+      detail:`Sans effort supplémentaire, chaque personne infectée transmet en moyenne ${cartoData.r0_spatial} nouvelle(s) infection(s)&nbsp;: le seuil de contrôle est atteint quand cette valeur passe sous&nbsp;1.`,
+    },
+    {
+      label:"Prévalence attendue à l'équilibre",
+      valeur:`${round(base.prevalence_nationale_baseline*100,1)}%`,
+      detail:"Part de la population qui resterait durablement touchée si la situation actuelle se maintenait, sans intervention supplémentaire.",
+    },
+    {
+      label:"Fiabilité du classement",
+      valeur: fiabiliteMin!=null ? `≥ ${fiabiliteMin}% des scénarios testés` : "—",
+      detail:"Les départements prioritaires identifiés restent en tête même en tenant compte des incertitudes sur les données disponibles.",
+    },
+  ];
+
+  cartes.push(dernierScenario ? {
+    label:"Dernier scénario testé",
+    valeur:`R₀ = ${dernierScenario.r0}`,
+    detail:`${dernierScenario.detail} <button type="button" class="highlight-reset" id="btn-reset-scenario">Revenir à la référence</button>`,
+    live:true,
+    warn: !dernierScenario.sousSeuil,
+  } : {
+    label:"Dernier scénario testé",
+    valeur:"Aucun pour l'instant",
+    detail:`Les chiffres ci-dessus montrent la situation de référence, sans intervention. <a href="outil.html#simulateur" class="highlight-goto">Tester un scénario →</a>`,
+    live:false,
+  });
+
+  grid.innerHTML = cartes.map(c=>`
+    <div class="highlight-card${c.live ? " highlight-card--live" : ""}">
+      <span class="highlight-label">${c.label}${c.live ? ' <span class="live-dot" title="Mis à jour d’après ton dernier essai">●</span>' : ""}</span>
+      <span class="highlight-value${c.warn ? " highlight-value--warn" : ""}">${c.valeur}</span>
+      <p>${c.detail}</p>
+    </div>
+  `).join("");
+
+  const resetBtn = grid.querySelector("#btn-reset-scenario");
+  if (resetBtn){
+    resetBtn.addEventListener("click", ()=>{
+      effacerDernierScenario();
+      remplirPointsCles();
+    });
+  }
+}
+
+remplirPointsCles();
+
+// si l'onglet reste ouvert pendant qu'un scénario est testé dans un autre onglet
+// (même navigateur), la carte se met à jour dès qu'on revient sur cette page
+window.addEventListener("storage", (e)=>{ if (e.key === STORAGE_KEY) remplirPointsCles(); });
+window.addEventListener("pageshow", remplirPointsCles);
+})();
+</script>
+</body>
+</html>

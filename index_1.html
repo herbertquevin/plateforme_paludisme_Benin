@@ -1,0 +1,94 @@
+<title>Plateforme paludisme Bénin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<header class="topbar">
+  <div class="topbar-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">◆</span>
+      <div>
+        <div class="brand-title">Aide à la décision sur le paludisme au Bénin</div>
+        <div class="brand-sub">Modèle SEIRS-SEI multi-patchs · 12 départements</div>
+      </div>
+    </a>
+    <nav class="site-links">
+      <a href="index.html" class="current">Accueil</a>
+      <a href="pourquoi.html">Pourquoi cet outil</a>
+      <a href="resultats.html">Résultats clés</a>
+      <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="outil.html" class="cta">Accéder à l'outil →</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero" id="accueil" aria-label="Introduction">
+  <div class="hero-field" aria-hidden="true">
+    <svg width="0" height="0">
+      <defs>
+        <symbol id="ic-mosquito" viewBox="0 0 120 60">
+          <line x1="0" y1="26" x2="22" y2="26" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          <circle cx="27" cy="26" r="6" fill="currentColor"/>
+          <ellipse cx="62" cy="28" rx="34" ry="6.5" fill="currentColor"/>
+          <ellipse cx="50" cy="15" rx="21" ry="8.5" fill="currentColor" opacity=".55" transform="rotate(-20 50 15)"/>
+          <ellipse cx="56" cy="41" rx="21" ry="8.5" fill="currentColor" opacity=".4" transform="rotate(20 56 41)"/>
+          <line x1="42" y1="32" x2="22" y2="53" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="50" y1="34" x2="37" y2="59" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="58" y1="34" x2="51" y2="60" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="42" y1="24" x2="20" y2="7" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="50" y1="22" x2="36" y2="1" stroke="currentColor" stroke-width="1.3"/>
+          <line x1="58" y1="22" x2="52" y2="-1" stroke="currentColor" stroke-width="1.3"/>
+        </symbol>
+        <symbol id="ic-parasite" viewBox="0 0 60 60">
+          <circle cx="30" cy="30" r="26" fill="currentColor" opacity=".16"/>
+          <circle cx="30" cy="30" r="26" fill="none" stroke="currentColor" stroke-width="1.5" opacity=".55"/>
+          <circle cx="21" cy="23" r="6.5" fill="none" stroke="currentColor" stroke-width="2.6"/>
+          <circle cx="19" cy="21" r="2" fill="currentColor"/>
+        </symbol>
+      </defs>
+    </svg>
+    <svg class="mosquito m1" style="left:6%; top:14%;" width="72" height="36" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="mosquito m2" style="right:10%; top:10%;" width="54" height="27" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="mosquito m3" style="left:16%; bottom:16%;" width="46" height="23" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="mosquito m4" style="right:18%; bottom:22%;" width="64" height="32" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="mosquito m5" style="left:42%; top:8%;" width="38" height="19" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="mosquito m6" style="right:38%; bottom:10%;" width="50" height="25" viewBox="0 0 120 60"><use href="#ic-mosquito"/></svg>
+    <svg class="parasite p1" style="left:10%; top:42%;" width="40" height="40" viewBox="0 0 60 60"><use href="#ic-parasite"/></svg>
+    <svg class="parasite p2" style="right:8%; top:46%;" width="52" height="52" viewBox="0 0 60 60"><use href="#ic-parasite"/></svg>
+    <svg class="parasite p3" style="left:26%; bottom:8%;" width="34" height="34" viewBox="0 0 60 60"><use href="#ic-parasite"/></svg>
+    <svg class="parasite p4" style="right:26%; top:20%;" width="30" height="30" viewBox="0 0 60 60"><use href="#ic-parasite"/></svg>
+    <svg class="hero-network" style="left:50%; top:50%; transform:translate(-50%,-50%);" width="220" height="320" viewBox="0 0 220 320">
+      <g fill="currentColor">
+        <circle cx="110" cy="18" r="3.5"/><circle cx="70" cy="55" r="3.5"/><circle cx="150" cy="60" r="3.5"/>
+        <circle cx="100" cy="100" r="3.5"/><circle cx="40" cy="120" r="3.5"/><circle cx="160" cy="130" r="3.5"/>
+        <circle cx="110" cy="160" r="3.5"/><circle cx="70" cy="195" r="3.5"/><circle cx="150" cy="200" r="3.5"/>
+        <circle cx="95" cy="235" r="3.5"/><circle cx="130" cy="260" r="3.5"/><circle cx="105" cy="295" r="3.5"/>
+      </g>
+      <g stroke="currentColor" stroke-width="1" fill="none">
+        <path class="edge" d="M110,18 L70,55 M110,18 L150,60 M70,55 L100,100 M150,60 L100,100 M100,100 L40,120 M100,100 L160,130 M40,120 L110,160 M160,130 L110,160 M110,160 L70,195 M110,160 L150,200 M70,195 L95,235 M150,200 L130,260 M95,235 L130,260 M95,235 L105,295 M130,260 L105,295"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="hero-content">
+    <span class="hero-eyebrow">Aide à la décision · ENSGMM/UNSTIM</span>
+    <h1 class="hero-title">Savoir <em>où</em> et <em>pourquoi</em> agir contre le paludisme au Bénin</h1>
+    <p class="hero-sub">Un outil pour identifier les départements qui entretiennent l'épidémie, cibler l'effort de lutte antivectorielle là où il compte le plus, et vérifier que ces priorités restent valables avant d'agir.</p>
+    <a class="hero-cta" href="outil.html">Explorer la plateforme<span aria-hidden="true">→</span></a>
+    <div class="hero-scroll-hint">
+      <span>En savoir plus</span>
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 6l5 5 5-5"/></svg>
+    </div>
+  </div>
+</section>
+
+<nav class="page-foot-nav" aria-label="Poursuivre">
+  <a href="pourquoi.html">Pourquoi cet outil →</a>
+  <a href="resultats.html">Résultats clés →</a>
+  <a href="fonctionnalites.html">Fonctionnalités →</a>
+</nav>
+
+<footer>
+  Plateforme d'aide à la décision fondée sur le mémoire «&nbsp;Modélisation de la propagation géographique du paludisme au Bénin&nbsp;». Les valeurs de R₀ et de prévalence hiérarchisent les départements les uns par rapport aux autres pour cibler les priorités d'intervention. Calculs exécutés entièrement dans le navigateur, validés terme à terme contre le modèle de référence du mémoire.
+</footer>

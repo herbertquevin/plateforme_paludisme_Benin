@@ -1,0 +1,587 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Outil — Plateforme paludisme Bénin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-row">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">◆</span>
+      <div>
+        <div class="brand-title">Aide à la décision sur le paludisme au Bénin</div>
+        <div class="brand-sub">Modèle SEIRS-SEI multi-patchs · 12 départements</div>
+      </div>
+    </a>
+    <nav class="site-links">
+      <a href="index.html">Accueil</a>
+      <a href="pourquoi.html">Pourquoi cet outil</a>
+      <a href="resultats.html">Résultats clés</a>
+      <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="outil.html" class="cta current">Accéder à l'outil →</a>
+    </nav>
+  </div>
+  <nav class="tabs">
+    <button class="tab-btn active" data-tab="cartographie">Cartographie</button>
+    <button class="tab-btn" data-tab="simulateur">Simulateur</button>
+    <button class="tab-btn" data-tab="effort">Effort minimal</button>
+    <button class="tab-btn" data-tab="robustesse">Robustesse</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ============ CARTOGRAPHIE ============ -->
+  <section id="cartographie" class="tab-panel active">
+    <div class="panel-head">
+      <h1>Cartographie du risque départemental</h1>
+      <p>Deux façons de classer les départements par priorité d'intervention&nbsp;: sans tenir compte des déplacements de population, puis en les intégrant. Le second classement, qui reflète les échanges réels entre départements, est celui à privilégier pour cibler une intervention.</p>
+    </div>
+
+    <div class="toggle-row">
+      <button class="toggle-btn active" data-view="local">R₀ local (sans mobilité)</button>
+      <button class="toggle-btn" data-view="net">Indice source-puits (avec flux)</button>
+    </div>
+
+    <div class="card">
+      <div class="chart-wrap"><canvas id="chart-cartographie" height="340"></canvas></div>
+    </div>
+
+    <div class="card note" id="cartographie-note"></div>
+
+    <div class="card table-card">
+      <table id="table-cartographie">
+        <thead>
+          <tr><th>Rang</th><th>Département</th><th>Population</th><th>HBR</th><th>Parturité</th><th>R₀⁽ᵏ⁾</th><th>Statut local</th><th>SPₖ</th><th>Statut net</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ SIMULATEUR ============ -->
+  <section id="simulateur" class="tab-panel">
+    <div class="panel-head">
+      <h1>Simulateur de scénarios d'intervention</h1>
+      <p>Choisissez un type d'intervention et une intensité d'effort, ou laissez l'outil répartir un budget total de la façon la plus efficace entre départements.</p>
+    </div>
+
+    <div class="sim-grid">
+      <div class="card form-card">
+        <h3>Scénario manuel</h3>
+        <label for="sc-levier">Type d'intervention</label>
+        <select id="sc-levier">
+          <option value="a">Protection individuelle (moustiquaires, répulsifs)</option>
+          <option value="lambda_v">Lutte antivectorielle (réduction du nombre de moustiques)</option>
+        </select>
+
+        <label for="sc-mode">Ciblage</label>
+        <select id="sc-mode">
+          <option value="uniforme">Uniforme (tous les départements)</option>
+          <option value="personnalise">Personnalisé (par département)</option>
+        </select>
+
+        <div id="sc-uniforme-block">
+          <label for="sc-u-uniforme">Effort <span id="sc-u-val">20</span>&nbsp;%</label>
+          <input type="range" id="sc-u-uniforme" min="0" max="80" value="20" step="5">
+        </div>
+
+        <div id="sc-custom-block" hidden></div>
+
+        <button class="btn-primary" id="btn-calculer">Calculer</button>
+      </div>
+
+      <div class="card form-card">
+        <h3>Allocation budgétaire optimisée</h3>
+        <p class="muted">Répartit un budget de lutte antivectorielle entre départements pour réduire le risque national le plus possible.</p>
+        <label for="sc-budget">Budget total <span id="sc-b-val">20</span>&nbsp;%</label>
+        <input type="range" id="sc-budget" min="5" max="50" value="20" step="5">
+        <button class="btn-secondary" id="btn-optimiser">Optimiser</button>
+      </div>
+    </div>
+
+    <div class="card result-card" id="resultat-scenario" hidden>
+      <h3>Résultat</h3>
+      <div class="kpi-row">
+        <div class="kpi">
+          <span class="kpi-label">R₀ (référence)</span>
+          <span class="kpi-value" id="res-r0-base">—</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">R₀ (scénario)</span>
+          <span class="kpi-value" id="res-r0-scenario">—</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">Prévalence nationale</span>
+          <span class="kpi-value" id="res-prevalence">—</span>
+        </div>
+        <div class="kpi" id="kpi-seuil">
+          <span class="kpi-label">Seuil épidémique</span>
+          <span class="kpi-value" id="res-seuil">—</span>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-scenario" height="280"></canvas></div>
+    </div>
+
+    <div class="card result-card" id="resultat-optim" hidden>
+      <h3>Allocation optimale par département</h3>
+      <div class="kpi-row">
+        <div class="kpi">
+          <span class="kpi-label">R₀ optimisé</span>
+          <span class="kpi-value" id="opt-r0-opt">—</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-label">R₀ couverture uniforme</span>
+          <span class="kpi-value" id="opt-r0-unif">—</span>
+        </div>
+      </div>
+      <div class="chart-wrap"><canvas id="chart-optim" height="280"></canvas></div>
+    </div>
+  </section>
+
+  <!-- ============ EFFORT MINIMAL ============ -->
+  <section id="effort" class="tab-panel">
+    <div class="panel-head">
+      <h1>Effort minimal par département source</h1>
+      <p>Pour chaque département où la transmission peut se maintenir seule, l'effort minimal de protection contre les piqûres à fournir pour ramener ce département sous le seuil épidémique, s'il agissait isolément. Ce calcul ne tient pas compte des échanges entre départements&nbsp;: même ramené sous son propre seuil, un département peut rester touché si le paludisme y est réintroduit depuis un département voisin.</p>
+    </div>
+    <div class="card">
+      <div class="chart-wrap"><canvas id="chart-effort" height="320"></canvas></div>
+    </div>
+    <div class="card note" id="effort-note"></div>
+  </section>
+
+  <!-- ============ ROBUSTESSE ============ -->
+  <section id="robustesse" class="tab-panel">
+    <div class="panel-head">
+      <h1>Robustesse des recommandations</h1>
+      <p>Les données disponibles comportent des marges d'incertitude (taux de piqûre, mesures entomologiques, immunité de la population). Ce test vérifie si le classement des départements prioritaires reste valable malgré ces incertitudes. Un département affiché en zone haute reste prioritaire presque à coup sûr&nbsp;; un département en zone basse doit être confirmé sur le terrain avant toute décision.</p>
+    </div>
+    <div class="card">
+      <div class="chart-wrap"><canvas id="chart-robustesse" height="360"></canvas></div>
+    </div>
+    <div class="card note">
+      <strong>Lecture&nbsp;:</strong> Atacora, Littoral et Collines restent des foyers prioritaires dans la quasi-totalité des scénarios testés&nbsp;: ce classement peut être utilisé sans réserve. Couffo ne l'est que dans 67&nbsp;% des scénarios&nbsp;: à traiter comme une priorité <em>conditionnelle</em>, à confirmer par une vérification de terrain avant toute décision d'allocation.
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Plateforme d'aide à la décision fondée sur le mémoire «&nbsp;Modélisation de la propagation géographique du paludisme au Bénin&nbsp;». Les valeurs de R₀ et de prévalence hiérarchisent les départements les uns par rapport aux autres pour cibler les priorités d'intervention. Calculs exécutés entièrement dans le navigateur, validés terme à terme contre le modèle de référence du mémoire.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
+<script src="malaria-model.js"></script>
+<script src="optim.js"></script>
+<script>
+(function(){
+"use strict";
+const DEP = MalariaModel.DEPARTEMENTS;
+const N = MalariaModel.N_PATCH;
+const KAPPA_NOM = MalariaModel.KAPPA_NOM;
+const THETA_NOM = MalariaModel.THETA_NOMINAL;
+const ROBUSTESSE_MC = MalariaModel.ROBUSTESSE_MC;
+
+const { P: P_NOM } = MalariaModel.matriceResidence(THETA_NOM);
+const P0 = MalariaModel.buildParams(KAPPA_NOM);
+
+const round = (x, n) => { const f = Math.pow(10, n); return Math.round(x * f) / f; };
+
+function cssVar(name){
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+const COLOR_SOURCE = () => cssVar("--source");
+const COLOR_PUITS = () => cssVar("--puits");
+const COLOR_NAVY = () => cssVar("--navy");
+const COLOR_INK = () => cssVar("--ink");
+const COLOR_LINE = () => cssVar("--line");
+
+Chart.defaults.color = COLOR_INK();
+Chart.defaults.borderColor = COLOR_LINE();
+Chart.defaults.font.family = "'Source Sans 3', system-ui, sans-serif";
+
+const STORAGE_KEY = "malariaBeninDernierScenario";
+function ecrireDernierScenario(obj){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch (e){}
+}
+
+// -----------------------------------------------------------------
+// Équivalents des endpoints du backend Python (platform/backend/main.py),
+// recalculés localement à partir des mêmes fonctions (scripts/model.py).
+// -----------------------------------------------------------------
+function apiDiagnostic(){
+  const r0_local = MalariaModel.R0LocalNoMobility(P0);
+  const K_hv = MalariaModel.KhvMatrix(P0, P_NOM);
+  const I_k = K_hv.map(row => row.reduce((s,x)=>s+x,0));
+  const E_k = new Array(N).fill(0);
+  for (let k=0;k<N;k++) for (let j=0;j<N;j++) E_k[j]+=K_hv[k][j];
+  const SP_k = E_k.map((e,k)=>e-I_k[k]);
+  const r0_global = MalariaModel.R0Spatial(P0, P_NOM);
+  const departements = DEP.map((d,i)=>({
+    nom:d,
+    population: MalariaModel.POPULATION[d],
+    hbr: MalariaModel.HBR[d],
+    parturite: MalariaModel.PARTURITE[d],
+    r0_local: round(r0_local[i],4),
+    source_local: r0_local[i] > 1.0,
+    sp_k: round(SP_k[i],6),
+    source_net: SP_k[i] > 0,
+  }));
+  departements.sort((a,b)=>b.r0_local-a.r0_local);
+  return { kappa:KAPPA_NOM, theta:THETA_NOM, r0_spatial: round(r0_global,4), departements };
+}
+
+function apiEffortMinimal(){
+  const r0_local = MalariaModel.R0LocalNoMobility(P0);
+  const departements = DEP.map((d,i)=>{
+    const r0 = r0_local[i];
+    const source = r0 > 1.0;
+    return {
+      nom:d, r0_local: round(r0,4), source_local: source,
+      u_etoile: source ? round((1.0 - 1.0/r0)*100, 1) : null,
+    };
+  });
+  departements.sort((a,b)=>b.r0_local-a.r0_local);
+  return { departements };
+}
+
+let _baselineCache = null;
+function prevalenceNationaleEtDepartementale(p, tEndYears){
+  const y0 = MalariaModel.etatInitialPrevalence(p, 0.20);
+  const { y } = MalariaModel.simuler(y0, p, P_NOM, tEndYears || 150.0, 1.0);
+  const ex = MalariaModel.extraire(y);
+  const prevDept = ex.Ih.map((ih,k)=>(ih+ex.Rh[k])/ex.N_h[k]);
+  const prevNat = (ex.Ih.reduce((s,x)=>s+x,0)+ex.Rh.reduce((s,x)=>s+x,0)) / ex.N_h.reduce((s,x)=>s+x,0);
+  return { prevNat, prevDept };
+}
+function getBaseline(){
+  if (!_baselineCache){
+    const r0_baseline = MalariaModel.R0Spatial(P0, P_NOM);
+    const { prevNat } = prevalenceNationaleEtDepartementale(P0);
+    _baselineCache = { r0_baseline, prevalence_nationale_baseline: prevNat };
+  }
+  return _baselineCache;
+}
+
+function apiScenario(levier, u){
+  const p_ctrl = levier === "a" ? MalariaModel.controleA(P0, u) : MalariaModel.controleLambdaV(P0, u);
+  const r0_ctrl = MalariaModel.R0Spatial(p_ctrl, P_NOM);
+  const { prevNat, prevDept } = prevalenceNationaleEtDepartementale(p_ctrl);
+  const base = getBaseline();
+  const prevalence_departementale = {};
+  DEP.forEach((d,i)=>{ prevalence_departementale[d] = round(prevDept[i]*100, 3); });
+  return {
+    levier,
+    r0_baseline: round(base.r0_baseline,4),
+    r0_scenario: round(r0_ctrl,4),
+    prevalence_nationale_baseline: round(base.prevalence_nationale_baseline*100,3),
+    prevalence_nationale_scenario: round(prevNat*100,3),
+    sous_seuil: r0_ctrl < 1.0,
+    prevalence_departementale,
+  };
+}
+
+function apiOptimiser(budgetPourcent){
+  const budgetTotal = 12 * (budgetPourcent/100.0);
+  function r0DeU(u){ return MalariaModel.R0Spatial(MalariaModel.controleA(P0, u), P_NOM); }
+  const { u } = optimiserAllocation(r0DeU, N, budgetTotal, { maxIter: 150 });
+  const u_opt = u.map(x=>Math.max(0,x));
+  const p_opt = MalariaModel.controleA(P0, u_opt);
+  const r0_opt = MalariaModel.R0Spatial(p_opt, P_NOM);
+
+  const u_unif = new Array(N).fill(budgetPourcent/100.0);
+  const p_unif = MalariaModel.controleA(P0, u_unif);
+  const r0_unif = MalariaModel.R0Spatial(p_unif, P_NOM);
+
+  const allocation_optimale = {};
+  DEP.forEach((d,i)=>{ allocation_optimale[d] = round(u_opt[i]*100, 1); });
+
+  return {
+    budget_pourcent: budgetPourcent,
+    r0_optimise: round(r0_opt,4),
+    r0_uniforme: round(r0_unif,4),
+    allocation_optimale,
+  };
+}
+
+function apiRobustesse(){
+  const out = Object.keys(ROBUSTESSE_MC).map(d=>({ nom:d, ...ROBUSTESSE_MC[d] }));
+  out.sort((a,b)=>b.pr_source-a.pr_source);
+  return { n_tirages: MalariaModel.N_TIRAGES_MC, departements: out };
+}
+
+// -----------------------------------------------------------------
+// Navigation par onglets (et lecture du lien direct, ex. outil.html#simulateur)
+// -----------------------------------------------------------------
+function activerOnglet(tab){
+  document.querySelectorAll(".tab-btn").forEach(b=>b.classList.toggle("active", b.dataset.tab === tab));
+  document.querySelectorAll(".tab-panel").forEach(p=>p.classList.toggle("active", p.id === tab));
+}
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>activerOnglet(btn.dataset.tab));
+});
+const TABS_VALIDES = ["cartographie","simulateur","effort","robustesse"];
+const hashTab = (location.hash || "").replace("#","");
+if (TABS_VALIDES.includes(hashTab)) activerOnglet(hashTab);
+
+// -----------------------------------------------------------------
+// 1. Cartographie
+// -----------------------------------------------------------------
+let cartoData = null, cartoView = "local", chartCartographie;
+
+function chargerCartographie(){
+  cartoData = apiDiagnostic();
+  dessinerCartographie();
+  remplirTableCartographie();
+}
+document.querySelectorAll(".toggle-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll(".toggle-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    cartoView = btn.dataset.view;
+    dessinerCartographie();
+  });
+});
+
+function dessinerCartographie(){
+  if (!cartoData) return;
+  const rows = [...cartoData.departements];
+  const key = cartoView === "local" ? "r0_local" : "sp_k";
+  rows.sort((a,b)=>b[key]-a[key]);
+  const labels = rows.map(d=>d.nom);
+  const values = rows.map(d=>d[key]);
+  const colors = rows.map(d=>(cartoView==="local" ? d.source_local : d.source_net) ? COLOR_SOURCE() : COLOR_PUITS());
+
+  const noteEl = document.getElementById("cartographie-note");
+  if (cartoView === "local"){
+    noteEl.innerHTML = `<strong>R₀ local</strong> (sans mobilité). Risque national actuel&nbsp;: <strong>R₀ = ${cartoData.r0_spatial}</strong>. Un département est classé « source » s'il pourrait, à lui seul et indépendamment des autres, entretenir une épidémie.`;
+  } else {
+    noteEl.innerHTML = `<strong>Indice source-puits SPₖ</strong> (avec déplacements de population). Il tient compte de ce que chaque département importe et exporte réellement de cas vers ses voisins&nbsp;: c'est le critère à privilégier pour décider où agir en priorité.`;
+  }
+
+  if (chartCartographie) chartCartographie.destroy();
+  chartCartographie = new Chart(document.getElementById("chart-cartographie"), {
+    type:"bar",
+    data:{ labels, datasets:[{ data:values, backgroundColor:colors, borderRadius:2 }] },
+    options:{
+      indexAxis:"y",
+      plugins:{ legend:{ display:false } },
+      scales:{ x:{ title:{ display:true, text: cartoView==="local" ? "R₀⁽ᵏ⁾ (sans mobilité)" : "SPₖ = Exportation − Importation" } } },
+    },
+  });
+}
+
+function remplirTableCartographie(){
+  const tbody = document.querySelector("#table-cartographie tbody");
+  tbody.innerHTML = "";
+  const rows = [...cartoData.departements].sort((a,b)=>b.r0_local-a.r0_local);
+  rows.forEach((d,i)=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${i+1}</td>
+      <td>${d.nom}</td>
+      <td>${d.population.toLocaleString("fr-FR")}</td>
+      <td>${d.hbr}</td>
+      <td>${d.parturite}%</td>
+      <td>${d.r0_local}</td>
+      <td><span class="pill ${d.source_local ? "source" : "puits"}">${d.source_local ? "Source" : "Puits"}</span></td>
+      <td>${d.sp_k >= 0 ? "+" : ""}${d.sp_k}</td>
+      <td><span class="pill ${d.source_net ? "source" : "puits"}">${d.source_net ? "Source" : "Puits"}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// -----------------------------------------------------------------
+// 2. Simulateur
+// -----------------------------------------------------------------
+const LEVIER_LABELS = { a:"protection individuelle", lambda_v:"lutte antivectorielle" };
+const scUniformeBlock = document.getElementById("sc-uniforme-block");
+const scCustomBlock = document.getElementById("sc-custom-block");
+
+document.getElementById("sc-mode").addEventListener("change",(e)=>{
+  if (e.target.value === "uniforme"){
+    scUniformeBlock.hidden = false;
+    scCustomBlock.hidden = true;
+  } else {
+    scUniformeBlock.hidden = true;
+    scCustomBlock.hidden = false;
+    if (!scCustomBlock.hasChildNodes()) construireBlocPersonnalise();
+  }
+});
+
+function construireBlocPersonnalise(){
+  scCustomBlock.innerHTML = "";
+  DEP.forEach(d=>{
+    const row = document.createElement("div");
+    row.className = "custom-row";
+    row.innerHTML = `<span>${d}</span><input type="number" min="0" max="90" value="0" step="5" data-dept="${d}" id="custom-${d}">`;
+    scCustomBlock.appendChild(row);
+  });
+}
+
+document.getElementById("sc-u-uniforme").addEventListener("input",(e)=>{
+  document.getElementById("sc-u-val").textContent = e.target.value;
+});
+document.getElementById("sc-budget").addEventListener("input",(e)=>{
+  document.getElementById("sc-b-val").textContent = e.target.value;
+});
+
+document.getElementById("btn-calculer").addEventListener("click", ()=>{
+  const btn = document.getElementById("btn-calculer");
+  btn.disabled = true;
+  btn.textContent = "Calcul en cours (simulation ~150 ans)...";
+  setTimeout(()=>{
+    try{
+      const levier = document.getElementById("sc-levier").value;
+      const mode = document.getElementById("sc-mode").value;
+      let u;
+      if (mode === "uniforme"){
+        const uu = parseFloat(document.getElementById("sc-u-uniforme").value) / 100.0;
+        u = new Array(N).fill(uu);
+      } else {
+        u = DEP.map(d=>{
+          const el = document.getElementById("custom-"+d);
+          return (el ? parseFloat(el.value) || 0 : 0) / 100.0;
+        });
+      }
+      if (u.some(x=>x<0 || x>=1)) throw new Error("Chaque effort doit être dans [0, 100)");
+      const data = apiScenario(levier, u);
+      const effortTxt = mode === "uniforme"
+        ? `un effort uniforme de ${Math.round(u[0]*100)}%`
+        : "un effort personnalisé par département";
+      ecrireDernierScenario({
+        r0: data.r0_scenario,
+        sousSeuil: data.sous_seuil,
+        detail: `Scénario testé&nbsp;: ${LEVIER_LABELS[levier]}, avec ${effortTxt}. R₀ passe de ${data.r0_baseline} à ${data.r0_scenario}.`,
+      });
+      afficherResultatScenario(data);
+    } catch(err){
+      alert("Erreur : " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Calculer";
+    }
+  }, 30);
+});
+
+let chartScenario;
+function afficherResultatScenario(data){
+  document.getElementById("resultat-scenario").hidden = false;
+  document.getElementById("res-r0-base").textContent = data.r0_baseline;
+  const r0El = document.getElementById("res-r0-scenario");
+  r0El.textContent = data.r0_scenario;
+  r0El.className = "kpi-value " + (data.sous_seuil ? "good" : "warn");
+  document.getElementById("res-prevalence").textContent =
+    `${data.prevalence_nationale_scenario}% (réf. ${data.prevalence_nationale_baseline}%)`;
+  const seuilEl = document.getElementById("res-seuil");
+  seuilEl.textContent = data.sous_seuil ? "Atteint" : "Non atteint";
+  seuilEl.className = "kpi-value " + (data.sous_seuil ? "good" : "warn");
+
+  const labels = Object.keys(data.prevalence_departementale);
+  const values = labels.map(d=>data.prevalence_departementale[d]);
+  if (chartScenario) chartScenario.destroy();
+  chartScenario = new Chart(document.getElementById("chart-scenario"), {
+    type:"bar",
+    data:{ labels, datasets:[{ label:"Prévalence à l'équilibre (%)", data:values, backgroundColor:COLOR_NAVY(), borderRadius:2 }] },
+    options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ title:{ display:true, text:"Prévalence (%)" } } } },
+  });
+  document.getElementById("resultat-scenario").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+document.getElementById("btn-optimiser").addEventListener("click", ()=>{
+  const btn = document.getElementById("btn-optimiser");
+  btn.disabled = true;
+  btn.textContent = "Optimisation en cours...";
+  setTimeout(()=>{
+    try{
+      const budgetPourcent = parseFloat(document.getElementById("sc-budget").value);
+      const data = apiOptimiser(budgetPourcent);
+      ecrireDernierScenario({
+        r0: data.r0_optimise,
+        sousSeuil: data.r0_optimise < 1,
+        detail: `Allocation optimisée testée avec un budget total de ${budgetPourcent}% de lutte antivectorielle. R₀ passe à ${data.r0_optimise} (contre ${data.r0_uniforme} avec le même budget réparti uniformément).`,
+      });
+      afficherResultatOptim(data);
+    } catch(err){
+      alert("Erreur : " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "Optimiser";
+    }
+  }, 30);
+});
+
+let chartOptim;
+function afficherResultatOptim(data){
+  document.getElementById("resultat-optim").hidden = false;
+  const optEl = document.getElementById("opt-r0-opt");
+  optEl.textContent = data.r0_optimise;
+  optEl.className = "kpi-value " + (data.r0_optimise < 1 ? "good" : "warn");
+  document.getElementById("opt-r0-unif").textContent = data.r0_uniforme;
+
+  const labels = Object.keys(data.allocation_optimale);
+  const values = labels.map(d=>data.allocation_optimale[d]);
+  if (chartOptim) chartOptim.destroy();
+  chartOptim = new Chart(document.getElementById("chart-optim"), {
+    type:"bar",
+    data:{ labels, datasets:[{ label:"Effort alloué u_k (%)", data:values, backgroundColor:COLOR_SOURCE(), borderRadius:2 }] },
+    options:{ plugins:{ legend:{ display:false } }, scales:{ y:{ title:{ display:true, text:"Effort alloué (%)" } } } },
+  });
+  document.getElementById("resultat-optim").scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+// -----------------------------------------------------------------
+// 3. Effort minimal (S15)
+// -----------------------------------------------------------------
+let chartEffort;
+function chargerEffortMinimal(){
+  const data = apiEffortMinimal();
+  const sources = data.departements.filter(d=>d.source_local);
+  const noteEl = document.getElementById("effort-note");
+  const min = sources[sources.length-1], max = sources[0];
+  noteEl.innerHTML = `L'effort nécessaire va de <strong>${min.u_etoile}%</strong> (${min.nom}) à <strong>${max.u_etoile}%</strong> (${max.nom}), jusqu'à ${(max.u_etoile/min.u_etoile).toFixed(0)} fois plus selon le département, dans le même ordre que la priorité de la cartographie. Les départements puits n'apparaissent pas&nbsp;: aucun effort local n'y est requis par ce critère.`;
+
+  if (chartEffort) chartEffort.destroy();
+  chartEffort = new Chart(document.getElementById("chart-effort"), {
+    type:"bar",
+    data:{ labels: sources.map(d=>d.nom), datasets:[{ label:"Effort minimal u_k* (%)", data: sources.map(d=>d.u_etoile), backgroundColor:COLOR_SOURCE(), borderRadius:2 }] },
+    options:{ indexAxis:"y", plugins:{ legend:{ display:false } }, scales:{ x:{ title:{ display:true, text:"u_k* (%) pour R₀⁽ᵏ⁾(u_k*) = 1" } } } },
+  });
+}
+
+// -----------------------------------------------------------------
+// 4. Robustesse
+// -----------------------------------------------------------------
+let chartRobustesse;
+function chargerRobustesse(){
+  const data = apiRobustesse();
+  const labels = data.departements.map(d=>d.nom);
+  chartRobustesse = new Chart(document.getElementById("chart-robustesse"), {
+    type:"bar",
+    data:{
+      labels,
+      datasets:[
+        { label:"Pr(source), %", data:data.departements.map(d=>d.pr_source), backgroundColor:COLOR_SOURCE(), borderRadius:2 },
+        { label:"Pr(top-3 prioritaire), %", data:data.departements.map(d=>d.pr_top3), backgroundColor:"#d98f30", borderRadius:2 },
+      ],
+    },
+    options:{ scales:{ y:{ title:{ display:true, text:`Probabilité sur ${data.n_tirages} tirages Monte-Carlo (%)` } } } },
+  });
+}
+
+chargerCartographie();
+chargerEffortMinimal();
+chargerRobustesse();
+})();
+</script>
+</body>
+</html>
