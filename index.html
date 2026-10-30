@@ -1,19 +1,30 @@
-<title>Plateforme paludisme Bénin</title>
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Plateforme d'aide à la décision pour cibler la lutte antipaludique au Bénin — modèle SEIRS-SEI multi-patchs.">
+<title>Paludisme Bénin — Aide à la décision</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
 <header class="topbar">
   <div class="topbar-row">
     <a class="brand" href="index.html">
-      <span class="brand-mark">◆</span>
+      <span class="brand-mark" aria-hidden="true">◆</span>
       <div>
-        <div class="brand-title">Aide à la décision sur le paludisme au Bénin</div>
-        <div class="brand-sub">Modèle SEIRS-SEI multi-patchs · 12 départements</div>
+        <div class="brand-title">Paludisme Bénin</div>
+        <div class="brand-sub">SEIRS-SEI · 12 départements</div>
       </div>
     </a>
-    <nav class="site-links">
+    <button class="nav-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-links" id="site-nav">
       <a href="index.html" class="current">Accueil</a>
       <a href="pourquoi.html">Pourquoi cet outil</a>
       <a href="resultats.html">Résultats clés</a>
@@ -22,9 +33,12 @@
     </nav>
   </div>
 </header>
+<div class="nav-backdrop" aria-hidden="true"></div>
 
 <section class="hero" id="accueil" aria-label="Introduction">
   <div class="hero-field" aria-hidden="true">
+    <div class="hero-grid"></div>
+    <div class="hero-scan"></div>
     <svg width="0" height="0">
       <defs>
         <symbol id="ic-mosquito" viewBox="0 0 120 60">
@@ -72,9 +86,9 @@
   </div>
 
   <div class="hero-content">
-    <span class="hero-eyebrow">Aide à la décision · ENSGMM/UNSTIM</span>
-    <h1 class="hero-title">Savoir <em>où</em> et <em>pourquoi</em> agir contre le paludisme au Bénin</h1>
-    <p class="hero-sub">Un outil pour identifier les départements qui entretiennent l'épidémie, cibler l'effort de lutte antivectorielle là où il compte le plus, et vérifier que ces priorités restent valables avant d'agir.</p>
+    <p class="hero-brand"><span>ENSGMM / UNSTIM</span>Paludisme Bénin</p>
+    <h1 class="hero-title">Savoir <em>où</em> et <em>pourquoi</em> agir contre le paludisme</h1>
+    <p class="hero-sub">Identifier les départements qui entretiennent l'épidémie, cibler la lutte antivectorielle là où elle compte, et vérifier que ces priorités tiennent avant d'agir.</p>
     <a class="hero-cta" href="outil.html">Explorer la plateforme<span aria-hidden="true">→</span></a>
     <div class="hero-scroll-hint">
       <span>En savoir plus</span>
@@ -92,3 +106,7 @@
 <footer>
   Plateforme d'aide à la décision fondée sur le mémoire «&nbsp;Modélisation de la propagation géographique du paludisme au Bénin&nbsp;». Les valeurs de R₀ et de prévalence hiérarchisent les départements les uns par rapport aux autres pour cibler les priorités d'intervention. Calculs exécutés entièrement dans le navigateur, validés terme à terme contre le modèle de référence du mémoire.
 </footer>
+
+<script src="nav.js"></script>
+</body>
+</html>

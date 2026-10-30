@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Outil — Plateforme paludisme Bénin</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Outil — Paludisme Bénin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Manrope:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,13 +14,16 @@
 <header class="topbar">
   <div class="topbar-row">
     <a class="brand" href="index.html">
-      <span class="brand-mark">◆</span>
+      <span class="brand-mark" aria-hidden="true">◆</span>
       <div>
-        <div class="brand-title">Aide à la décision sur le paludisme au Bénin</div>
-        <div class="brand-sub">Modèle SEIRS-SEI multi-patchs · 12 départements</div>
+        <div class="brand-title">Paludisme Bénin</div>
+        <div class="brand-sub">SEIRS-SEI · 12 départements</div>
       </div>
     </a>
-    <nav class="site-links">
+    <button class="nav-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-links" id="site-nav">
       <a href="index.html">Accueil</a>
       <a href="pourquoi.html">Pourquoi cet outil</a>
       <a href="resultats.html">Résultats clés</a>
@@ -28,13 +31,14 @@
       <a href="outil.html" class="cta current">Accéder à l'outil →</a>
     </nav>
   </div>
-  <nav class="tabs">
+  <nav class="tabs" aria-label="Modules de l'outil">
     <button class="tab-btn active" data-tab="cartographie">Cartographie</button>
     <button class="tab-btn" data-tab="simulateur">Simulateur</button>
     <button class="tab-btn" data-tab="effort">Effort minimal</button>
     <button class="tab-btn" data-tab="robustesse">Robustesse</button>
   </nav>
 </header>
+<div class="nav-backdrop" aria-hidden="true"></div>
 
 <main>
 
@@ -178,6 +182,7 @@
   Plateforme d'aide à la décision fondée sur le mémoire «&nbsp;Modélisation de la propagation géographique du paludisme au Bénin&nbsp;». Les valeurs de R₀ et de prévalence hiérarchisent les départements les uns par rapport aux autres pour cibler les priorités d'intervention. Calculs exécutés entièrement dans le navigateur, validés terme à terme contre le modèle de référence du mémoire.
 </footer>
 
+<script src="nav.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.umd.min.js"></script>
 <script src="malaria-model.js"></script>
 <script src="optim.js"></script>
@@ -206,7 +211,7 @@ const COLOR_LINE = () => cssVar("--line");
 
 Chart.defaults.color = COLOR_INK();
 Chart.defaults.borderColor = COLOR_LINE();
-Chart.defaults.font.family = "'Source Sans 3', system-ui, sans-serif";
+Chart.defaults.font.family = "'Manrope', system-ui, sans-serif";
 
 const STORAGE_KEY = "malariaBeninDernierScenario";
 function ecrireDernierScenario(obj){
